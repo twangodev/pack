@@ -10,7 +10,7 @@ use crate::board::Board;
 use crate::piece::{Piece, compute_outline_groups};
 
 use metrics::PageLayout;
-use outline::{build_outline_path, clip_groups};
+use outline::{build_outline_path, clip_groups, triangle_down, triangle_up};
 
 const BORDER_WIDTH_PT: f32 = 0.25;
 
@@ -103,6 +103,35 @@ pub fn to_pdf(
                 &layout,
                 &font_handle,
             ));
+
+            // Continuation markers in the margin for page-spanning pieces
+            let continues_below = last_vis < placed.shape.height();
+            let continues_above = first_vis > 0;
+
+            if continues_below || continues_above {
+                let mid_x =
+                    box_left + (placed.shape.max_width() as f32 * layout.font.char_width_mm) / 2.0;
+                let marker_size = layout.font.line_height_mm * 0.35;
+
+                // Gray fill for markers
+                page_ops.push(Op::SetFillColor {
+                    col: Color::Rgb(Rgb {
+                        r: 0.6,
+                        g: 0.6,
+                        b: 0.6,
+                        icc_profile: None,
+                    }),
+                });
+
+                if continues_below {
+                    let y = clipped.last().unwrap().gy_bot - layout.font.line_height_mm;
+                    page_ops.push(triangle_down(mid_x, y, marker_size));
+                }
+                if continues_above {
+                    let y = clipped[0].gy_top + layout.font.line_height_mm;
+                    page_ops.push(triangle_up(mid_x, y, marker_size));
+                }
+            }
         }
 
         all_pages.push(PdfPage::new(

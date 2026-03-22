@@ -1,4 +1,4 @@
-use printpdf::{LinePoint, Mm, Point};
+use printpdf::{LinePoint, Mm, Op, PaintMode, Point, Polygon, PolygonRing, WindingOrder};
 
 use crate::piece::outline::OutlineGroup;
 
@@ -72,4 +72,40 @@ pub(crate) fn build_outline_path(groups: &[ClippedGroup], box_left: f32) -> Vec<
 
     path.push(pt(box_left, box_bot_y));
     path
+}
+
+/// Build a filled triangle marker pointing down (▼).
+pub(crate) fn triangle_down(cx_mm: f32, cy_mm: f32, size_mm: f32) -> Op {
+    let half = size_mm / 2.0;
+    Op::DrawPolygon {
+        polygon: Polygon {
+            rings: vec![PolygonRing {
+                points: vec![
+                    pt(cx_mm - half, cy_mm + half), // top-left
+                    pt(cx_mm + half, cy_mm + half), // top-right
+                    pt(cx_mm, cy_mm - half),        // bottom-center
+                ],
+            }],
+            mode: PaintMode::Fill,
+            winding_order: WindingOrder::NonZero,
+        },
+    }
+}
+
+/// Build a filled triangle marker pointing up (▲).
+pub(crate) fn triangle_up(cx_mm: f32, cy_mm: f32, size_mm: f32) -> Op {
+    let half = size_mm / 2.0;
+    Op::DrawPolygon {
+        polygon: Polygon {
+            rings: vec![PolygonRing {
+                points: vec![
+                    pt(cx_mm - half, cy_mm - half), // bottom-left
+                    pt(cx_mm + half, cy_mm - half), // bottom-right
+                    pt(cx_mm, cy_mm + half),        // top-center
+                ],
+            }],
+            mode: PaintMode::Fill,
+            winding_order: WindingOrder::NonZero,
+        },
+    }
 }
