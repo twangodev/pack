@@ -1,6 +1,8 @@
+use crate::parse::types::*;
+
 use super::types::*;
 
-pub fn render_piece(section: &Section, section_index: usize, max_width: usize) -> Piece {
+pub(crate) fn render_piece(section: &Section, section_index: usize, max_width: usize) -> Piece {
     let mut lines = Vec::new();
 
     if let Some(title) = &section.title {

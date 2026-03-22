@@ -2,8 +2,9 @@ use comrak::nodes::{AstNode, NodeValue};
 use comrak::{Arena, Options, parse_document};
 
 use super::types::*;
+use crate::piece::TextStyle;
 
-pub fn parse_markdown(input: &str, split_level: u8) -> Vec<Section> {
+pub(crate) fn parse_markdown(input: &str, split_level: u8) -> Vec<Section> {
     let arena = Arena::new();
     let mut options = Options::default();
     options.extension.table = true;

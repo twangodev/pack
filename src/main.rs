@@ -1,12 +1,10 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-use pack::extract::{self, ExtractConfig, render_outline};
+use pack::parse::{self, ParseConfig};
 
 #[derive(Parser, Debug)]
-#[command(
-    name = "pack",
-)]
+#[command(name = "pack")]
 struct Args {
     /// Input markdown file
     input: PathBuf,
@@ -18,6 +16,10 @@ struct Args {
     /// Max width in characters for wrapping
     #[arg(short, long, default_value_t = 40)]
     width: usize,
+
+    /// Output PDF file path
+    #[arg(short, long)]
+    output: PathBuf,
 }
 
 fn main() {
@@ -31,18 +33,15 @@ fn main() {
         other => panic!("Unsupported split level: {}", other),
     };
 
-    let config = ExtractConfig {
+    let config = ParseConfig {
         split_level,
         max_width: args.width,
     };
 
-    let pieces = extract::extract_pieces(&markdown, &config);
-    eprintln!("Parsed {} pieces\n", pieces.len());
+    let pieces = parse::extract_pieces(&markdown, &config);
+    let board = pack::tui::run(pieces.clone()).expect("TUI error");
 
-    for p in &pieces {
-        for row in render_outline(p) {
-            eprintln!("{}", row);
-        }
-        eprintln!();
-    }
+    pack::export::to_pdf(&board, &pieces, args.output.to_str().unwrap())
+        .expect("Failed to render PDF");
+    eprintln!("Written to {}", args.output.display());
 }
